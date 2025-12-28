@@ -16,7 +16,7 @@ export interface OrderHistory {
     id: string;
     plan: string;
     date: string;
-    status: 'pending' | 'active' | 'expired';
+    status: 'pending' | 'active' | 'expired' | 'closed';
 }
 
 interface ClientStore {
@@ -25,6 +25,7 @@ interface ClientStore {
     addOrderToClient: (phone: string, order: OrderHistory) => void;
     getClientByPhone: (phone: string) => Client | undefined;
     updateClient: (id: string, updates: Partial<Client>) => void;
+    updateOrderStatus: (phone: string, orderId: string, status: OrderHistory['status']) => void;
 }
 
 export const useClientStore = create<ClientStore>()(
@@ -65,6 +66,19 @@ export const useClientStore = create<ClientStore>()(
 
             updateClient: (id, updates) => set((state) => ({
                 clients: state.clients.map(c => c.id === id ? { ...c, ...updates } : c)
+            })),
+
+            updateOrderStatus: (phone, orderId, status) => set((state) => ({
+                clients: state.clients.map(client => (
+                    client.phone === phone
+                        ? {
+                            ...client,
+                            history: client.history.map(order => (
+                                order.id === orderId ? { ...order, status } : order
+                            ))
+                        }
+                        : client
+                ))
             }))
         }),
         {

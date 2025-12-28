@@ -52,3 +52,15 @@ export const createBlogPost = (post: Omit<BlogPost, 'id' | 'date'>) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
     return newPost;
 };
+
+export const updateBlogPost = (
+    postId: string,
+    updates: Partial<Omit<BlogPost, 'id' | 'date'>>
+) => {
+    const posts = getBlogPosts();
+    const nextPosts = posts.map(post => (
+        post.id === postId ? { ...post, ...updates } : post
+    ));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(nextPosts));
+    return nextPosts;
+};

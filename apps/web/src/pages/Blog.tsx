@@ -7,7 +7,6 @@ import { Link } from 'react-router-dom';
 
 const Blog = () => {
     const [posts, setPosts] = useState<BlogPost[]>([]);
-
     useEffect(() => {
         setPosts(getBlogPosts());
     }, []);

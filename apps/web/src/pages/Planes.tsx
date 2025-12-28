@@ -1,10 +1,20 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { SEOHead } from '../components/seo/SEOHead';
 import { Layout } from '../components/layout/Layout';
-import { MOCK_PLANS } from '../services/mockData';
+import type { Plan } from '../services/mockData';
+import { getPlans, PLANS_UPDATED_EVENT } from '../services/plansStore';
 import { PlanCard } from '../components/ui/PlanCard';
 
 const Planes: React.FC = () => {
+    const [plans, setPlans] = useState<Plan[]>([]);
+
+    useEffect(() => {
+        const loadPlans = () => setPlans(getPlans());
+        loadPlans();
+        window.addEventListener(PLANS_UPDATED_EVENT, loadPlans);
+        return () => window.removeEventListener(PLANS_UPDATED_EVENT, loadPlans);
+    }, []);
+
     return (
         <Layout>
             <SEOHead />
@@ -21,7 +31,7 @@ const Planes: React.FC = () => {
                     </div>
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-                        {MOCK_PLANS.map((plan) => (
+                        {plans.map((plan) => (
                             <PlanCard key={plan.id} plan={plan} />
                         ))}
                     </div>

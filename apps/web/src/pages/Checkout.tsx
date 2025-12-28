@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Layout } from '../components/layout/Layout';
-import { MOCK_PLANS, type Plan } from '../services/mockData';
+import type { Plan } from '../services/mockData';
+import { getPlanById } from '../services/plansStore';
 import { CheckoutForm } from '../components/checkout/CheckoutForm';
 import { ShieldCheck, CheckCircle2 } from 'lucide-react';
 
@@ -11,7 +12,7 @@ const Checkout: React.FC = () => {
     const [plan, setPlan] = useState<Plan | null>(null);
 
     useEffect(() => {
-        const foundPlan = MOCK_PLANS.find(p => p.id === planId);
+        const foundPlan = getPlanById(planId);
         if (!foundPlan) {
             navigate('/planes');
             return;
