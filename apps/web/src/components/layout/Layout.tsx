@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { MessageCircle } from 'lucide-react';
-import { openWhatsApp } from '../../utils/whatsapp';
+import { getWhatsAppUrl, openWhatsApp } from '../../utils/whatsapp';
 // import { BookOpen } from 'lucide-react'; // Removed as we use text gradient now
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -50,7 +50,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
             {/* WhatsApp Floating Button */}
             <a
-                href="https://wa.me/573000000000"
+                href={getWhatsAppUrl('573332260032')}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="fixed bottom-6 right-6 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg transition-transform hover:scale-110 z-50 flex items-center justify-center"

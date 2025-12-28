@@ -8,6 +8,7 @@ import Soporte from './pages/Soporte';
 import Checkout from './pages/Checkout';
 import PaymentResult from './pages/PaymentResult';
 import Blog from './pages/Blog';
+import BlogPost from './pages/BlogPost';
 import Terms from './pages/legal/Terms';
 import Privacy from './pages/legal/Privacy';
 import Refunds from './pages/legal/Refunds';
@@ -35,6 +36,7 @@ function App() {
           <Route path="/checkout/:planId" element={<Checkout />} />
           <Route path="/pago/resultado" element={<PaymentResult />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:postId" element={<BlogPost />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/soporte" element={<Soporte />} />
           <Route path="/legal/terminos" element={<Terms />} />

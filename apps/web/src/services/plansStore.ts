@@ -19,7 +19,7 @@ type GraphQLPlan = {
     isActive?: boolean | null;
 };
 
-type PlanInput = {
+type CreatePlanInput = {
     planId: string;
     name: string;
     description: string;
@@ -31,6 +31,8 @@ type PlanInput = {
     availableSpots?: number | null;
     isActive?: boolean | null;
 };
+
+type UpdatePlanInput = Omit<CreatePlanInput, 'planId'>;
 
 type ListPlansResponse = { listPlans: GraphQLPlan[] };
 type GetPlanResponse = { getPlan: GraphQLPlan | null };
@@ -133,8 +135,7 @@ const mapPlan = (plan: GraphQLPlan): Plan => ({
     isActive: plan.isActive ?? true
 });
 
-const toPlanInput = (plan: Plan): PlanInput => ({
-    planId: plan.id,
+const toBasePlanInput = (plan: Plan): UpdatePlanInput => ({
     name: plan.name,
     description: plan.description,
     price: plan.price,
@@ -144,6 +145,11 @@ const toPlanInput = (plan: Plan): PlanInput => ({
     highlight: plan.highlight ?? null,
     availableSpots: plan.availableSpots ?? null,
     isActive: plan.isActive ?? true
+});
+
+const toCreatePlanInput = (plan: Plan): CreatePlanInput => ({
+    planId: plan.id,
+    ...toBasePlanInput(plan)
 });
 
 export const listPlans = async (): Promise<Plan[]> => {
@@ -190,7 +196,7 @@ export const createPlan = async (plan: Plan): Promise<Plan> => {
     }
 
     const data = await graphqlRequest<CreatePlanResponse>(CREATE_PLAN_MUTATION, {
-        input: toPlanInput(plan)
+        input: toCreatePlanInput(plan)
     });
     const saved = mapPlan(data.createPlan);
     dispatchPlansUpdate();
@@ -208,7 +214,7 @@ export const updatePlan = async (plan: Plan): Promise<Plan> => {
 
     const data = await graphqlRequest<UpdatePlanResponse>(UPDATE_PLAN_MUTATION, {
         planId: plan.id,
-        input: toPlanInput(plan)
+        input: toBasePlanInput(plan)
     });
     const saved = mapPlan(data.updatePlan);
     dispatchPlansUpdate();

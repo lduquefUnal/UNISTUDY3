@@ -1,5 +1,6 @@
 import { Layout } from '../components/layout/Layout';
 import { MessageCircle, Mail, Clock } from 'lucide-react';
+import { getWhatsAppUrl } from '../utils/whatsapp';
 
 const Soporte: React.FC = () => {
     return (
@@ -22,8 +23,9 @@ const Soporte: React.FC = () => {
                             <h3 className="text-xl font-bold text-gray-900 mb-2">WhatsApp</h3>
                             <p className="text-gray-500 mb-6 text-sm">Respuesta en ~5 minutos</p>
                             <a
-                                href="https://wa.me/573000000000"
+                                href={getWhatsAppUrl('573332260032')}
                                 target="_blank"
+                                rel="noopener noreferrer"
                                 className="inline-block w-full py-2 px-4 rounded-lg bg-green-500 text-white font-medium hover:bg-green-600 transition"
                             >
                                 Abrir Chat

@@ -64,7 +64,7 @@ const buildClientsWithHistory = (clients: ClientRecord[], orders: Order[]): Clie
 
     orders.forEach(order => {
         const historyItem: OrderHistory = {
-            id: order.reference,
+            id: order.orderId,
             plan: order.planName || order.planId,
             date: order.createdAt,
             status: mapStatusToHistory(order.status)

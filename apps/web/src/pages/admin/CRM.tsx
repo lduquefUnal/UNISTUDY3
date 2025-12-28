@@ -69,6 +69,15 @@ const AdminCRM: React.FC = () => {
         })
     ), [clients]);
 
+    const handleStatusChange = async (orderId: string, status: OrderHistory['status']) => {
+        try {
+            await updateOrderStatus(orderId, status);
+        } catch (error) {
+            console.error('Error updating order status:', error);
+            window.alert('No se pudo actualizar el estado. Intenta de nuevo.');
+        }
+    };
+
     return (
         <AdminLayout>
             <h1 className="text-2xl font-bold text-gray-900 mb-8">CRM & Pipeline</h1>
@@ -94,8 +103,8 @@ const AdminCRM: React.FC = () => {
                                 <DealCard
                                     key={deal.id}
                                     deal={deal}
-                                    onActivate={() => void updateOrderStatus(deal.orderId, 'active')}
-                                    onClose={() => void updateOrderStatus(deal.orderId, 'closed')}
+                                    onActivate={() => void handleStatusChange(deal.orderId, 'active')}
+                                    onClose={() => void handleStatusChange(deal.orderId, 'closed')}
                                 />
                             ))
                         )}
@@ -121,8 +130,8 @@ const AdminCRM: React.FC = () => {
                                 <DealCard
                                     key={deal.id}
                                     deal={deal}
-                                    onActivate={() => void updateOrderStatus(deal.orderId, 'active')}
-                                    onClose={() => void updateOrderStatus(deal.orderId, 'closed')}
+                                    onActivate={() => void handleStatusChange(deal.orderId, 'active')}
+                                    onClose={() => void handleStatusChange(deal.orderId, 'closed')}
                                 />
                             ))
                         )}
