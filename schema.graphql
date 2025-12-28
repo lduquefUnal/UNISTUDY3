@@ -1,0 +1,66 @@
+type Client @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  phone: String! @index(name: "byPhone", sortKeyFields: ["createdAt"])
+  name: String!
+  email: String
+  createdAt: AWSDateTime!
+  notes: String
+  orders: [Order] @hasMany(indexName: "byClient", fields: ["id"])
+}
+
+type Order @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  clientID: ID! @index(name: "byClient", sortKeyFields: ["createdAt"])
+  client: Client @belongsTo(fields: ["clientID"])
+  planID: ID!
+  plan: Plan @belongsTo(fields: ["planID"])
+  reference: String!
+  status: OrderStatus!
+  createdAt: AWSDateTime!
+  expiresAt: AWSDateTime
+}
+
+enum OrderStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+}
+
+type Plan @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String!
+  description: String!
+  monthlyPrice: Float!
+  annualPrice: Float!
+  features: [String]!
+  category: String!
+  isActive: Boolean!
+  priority: Int
+  orders: [Order] @hasMany(indexName: "byPlan", fields: ["id"])
+}
+
+type BlogPost @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  title: String!
+  slug: String! @index(name: "bySlug")
+  excerpt: String!
+  content: String!
+  author: String!
+  coverImage: String
+  published: Boolean!
+  publishedAt: AWSDateTime
+  tags: [String]
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type Reminder @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  clientID: ID! @index(name: "byClient", sortKeyFields: ["scheduledFor"])
+  client: Client @belongsTo(fields: ["clientID"])
+  message: String!
+  scheduledFor: AWSDateTime!
+  sent: Boolean!
+  sentAt: AWSDateTime
+  createdAt: AWSDateTime!
+}

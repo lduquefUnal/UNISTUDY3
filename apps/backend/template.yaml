@@ -1,0 +1,108 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Unistudy Backend
+  
+  Serverless backend for Unistudy (Plans & Orders)
+
+Globals:
+  Function:
+    Timeout: 10
+    Runtime: nodejs18.x
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        PLANS_TABLE: !Ref PlansTable
+        ORDERS_TABLE: !Ref OrdersTable
+
+Resources:
+  # DynamoDB Tables
+  PlansTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${AWS::StackName}-Plans
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  OrdersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${AWS::StackName}-Orders
+      AttributeDefinitions:
+        - AttributeName: ref
+          AttributeType: S
+      KeySchema:
+        - AttributeName: ref
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  # API Gateway (HTTP API)
+  UnistudyApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+        AllowHeaders:
+          - "*"
+
+  # Lambda Functions
+  GetPlansFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/get-plans.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PlansTable
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref UnistudyApi
+            Path: /plans
+            Method: GET
+
+  CreateOrderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/create-order.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref OrdersTable
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref UnistudyApi
+            Path: /orders
+            Method: POST
+
+  GetOrderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/get-order.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref OrdersTable
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref UnistudyApi
+            Path: /orders/{ref}
+            Method: GET
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${UnistudyApi}.execute-api.${AWS::Region}.amazonaws.com"
