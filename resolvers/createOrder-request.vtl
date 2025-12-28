@@ -1,0 +1,16 @@
+{
+  "version": "2017-02-28",
+  "operation": "PutItem",
+  "key": {
+    "orderId": $util.dynamodb.toDynamoDBJson($util.autoId())
+  },
+  "attributeValues": {
+    "clientPhone": $util.dynamodb.toDynamoDBJson($ctx.args.input.clientPhone),
+    "planId": $util.dynamodb.toDynamoDBJson($ctx.args.input.planId),
+    "status": $util.dynamodb.toDynamoDBJson($ctx.args.input.status),
+    "amount": $util.dynamodb.toDynamoDBJson($ctx.args.input.amount),
+    "reference": $util.dynamodb.toDynamoDBJson($ctx.args.input.reference),
+    "createdAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601()),
+    "expiresAt": $util.dynamodb.toDynamoDBJson($ctx.args.input.expiresAt)
+  }
+}

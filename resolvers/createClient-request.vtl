@@ -1,0 +1,13 @@
+{
+  "version": "2017-02-28",
+  "operation": "PutItem",
+  "key": {
+    "phone": $util.dynamodb.toDynamoDBJson($ctx.args.input.phone)
+  },
+  "attributeValues": {
+    "name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
+    "email": $util.dynamodb.toDynamoDBJson($ctx.args.input.email),
+    "createdAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601()),
+    "notes": $util.dynamodb.toDynamoDBJson($ctx.args.input.notes)
+  }
+}
