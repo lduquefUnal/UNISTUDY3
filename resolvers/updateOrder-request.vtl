@@ -1,0 +1,22 @@
+#set($exp = "SET #status = :status")
+#set($expNames = {"#status": "status"})
+#set($expValues = {":status": $util.dynamodb.toDynamoDBJson($ctx.args.input.status)})
+
+#if(!$util.isNull($ctx.args.input.expiresAt))
+  #set($exp = "${exp}, #expiresAt = :expiresAt")
+  $util.qr($expNames.put("#expiresAt", "expiresAt"))
+  $util.qr($expValues.put(":expiresAt", $util.dynamodb.toDynamoDBJson($ctx.args.input.expiresAt)))
+#end
+
+{
+  "version": "2017-02-28",
+  "operation": "UpdateItem",
+  "key": {
+    "orderId": $util.dynamodb.toDynamoDBJson($ctx.args.orderId)
+  },
+  "update": {
+    "expression": "$exp",
+    "expressionNames": $util.toJson($expNames),
+    "expressionValues": $util.toJson($expValues)
+  }
+}

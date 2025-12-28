@@ -1,6 +1,8 @@
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import type { ClientRecord } from '../services/clientsService';
+import { listClients } from '../services/clientsService';
+import { listOrders, updateOrderStatus as updateOrderStatusApi, type Order, type OrderStatus } from '../services/mockOrders';
 
 export interface Client {
     id: string; // Phone number as ID is simple and effective for this MVP
@@ -21,68 +23,109 @@ export interface OrderHistory {
 
 interface ClientStore {
     clients: Client[];
-    addClient: (client: Omit<Client, 'history'>) => void;
-    addOrderToClient: (phone: string, order: OrderHistory) => void;
+    orders: Order[];
+    loading: boolean;
+    refresh: () => Promise<void>;
     getClientByPhone: (phone: string) => Client | undefined;
-    updateClient: (id: string, updates: Partial<Client>) => void;
-    updateOrderStatus: (phone: string, orderId: string, status: OrderHistory['status']) => void;
+    updateOrderStatus: (orderId: string, status: OrderHistory['status']) => Promise<void>;
 }
 
-export const useClientStore = create<ClientStore>()(
-    persist(
-        (set, get) => ({
-            clients: [],
+const mapStatusToHistory = (status: OrderStatus): OrderHistory['status'] => {
+    switch (status) {
+        case 'ACTIVE':
+            return 'active';
+        case 'EXPIRED':
+            return 'expired';
+        case 'CLOSED':
+        case 'REFUNDED':
+            return 'closed';
+        case 'PENDING':
+        default:
+            return 'pending';
+    }
+};
 
-            addClient: (newClient) => set((state) => {
-                const existingIndex = state.clients.findIndex(c => c.phone === newClient.phone);
-                if (existingIndex !== -1) {
-                    // Update existing client (keep history)
-                    const updated = [...state.clients];
-                    updated[existingIndex] = {
-                        ...updated[existingIndex],
-                        name: newClient.name,
-                        email: newClient.email,
-                        notes: newClient.notes
-                    };
-                    return { clients: updated };
-                }
-                // Create new client
-                return {
-                    clients: [...state.clients, { ...newClient, history: [] }]
-                };
-            }),
+const mapStatusToApi = (status: OrderHistory['status']): OrderStatus => {
+    switch (status) {
+        case 'active':
+            return 'ACTIVE';
+        case 'expired':
+            return 'EXPIRED';
+        case 'closed':
+            return 'CLOSED';
+        case 'pending':
+        default:
+            return 'PENDING';
+    }
+};
 
-            addOrderToClient: (phone, order) => set((state) => ({
-                clients: state.clients.map(client =>
-                    client.phone === phone
-                        ? { ...client, history: [...client.history, order] }
-                        : client
-                )
-            })),
+const buildClientsWithHistory = (clients: ClientRecord[], orders: Order[]): Client[] => {
+    const historyByClient = new Map<string, OrderHistory[]>();
 
-            getClientByPhone: (phone) => {
-                return get().clients.find(c => c.phone === phone);
-            },
+    orders.forEach(order => {
+        const historyItem: OrderHistory = {
+            id: order.reference,
+            plan: order.planName || order.planId,
+            date: order.createdAt,
+            status: mapStatusToHistory(order.status)
+        };
 
-            updateClient: (id, updates) => set((state) => ({
-                clients: state.clients.map(c => c.id === id ? { ...c, ...updates } : c)
-            })),
+        const existing = historyByClient.get(order.clientPhone) || [];
+        existing.push(historyItem);
+        historyByClient.set(order.clientPhone, existing);
+    });
 
-            updateOrderStatus: (phone, orderId, status) => set((state) => ({
-                clients: state.clients.map(client => (
-                    client.phone === phone
-                        ? {
-                            ...client,
-                            history: client.history.map(order => (
-                                order.id === orderId ? { ...order, status } : order
-                            ))
-                        }
-                        : client
-                ))
-            }))
-        }),
-        {
-            name: 'unistudy-clients-storage', // unique name for localStorage key
+    return clients.map(client => ({
+        id: client.phone,
+        name: client.name,
+        phone: client.phone,
+        email: client.email || '',
+        createdAt: client.createdAt,
+        notes: client.notes || undefined,
+        history: historyByClient.get(client.phone) || []
+    }));
+};
+
+export const useClientStore = create<ClientStore>((set, get) => ({
+    clients: [],
+    orders: [],
+    loading: false,
+
+    refresh: async () => {
+        set({ loading: true });
+        try {
+            const [clients, orders] = await Promise.all([listClients(), listOrders()]);
+            set({
+                clients: buildClientsWithHistory(clients, orders),
+                orders,
+                loading: false
+            });
+        } catch (error) {
+            console.error('Error loading clients/orders:', error);
+            set({ loading: false });
         }
-    )
-);
+    },
+
+    getClientByPhone: (phone) => {
+        return get().clients.find(c => c.phone === phone);
+    },
+
+    updateOrderStatus: async (orderId, status) => {
+        const apiStatus = mapStatusToApi(status);
+        await updateOrderStatusApi(orderId, apiStatus);
+
+        set((state) => {
+            const nextOrders = state.orders.map(order =>
+                order.orderId === orderId ? { ...order, status: apiStatus } : order
+            );
+            const nextClients = state.clients.map(client => ({
+                ...client,
+                history: client.history.map(history =>
+                    history.id === orderId ? { ...history, status } : history
+                )
+            }));
+
+            return { orders: nextOrders, clients: nextClients };
+        });
+    }
+}));

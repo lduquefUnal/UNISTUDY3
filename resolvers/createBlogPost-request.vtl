@@ -1,0 +1,17 @@
+{
+  "version": "2017-02-28",
+  "operation": "PutItem",
+  "key": {
+    "postId": $util.dynamodb.toDynamoDBJson($util.autoId())
+  },
+  "attributeValues": {
+    "title": $util.dynamodb.toDynamoDBJson($ctx.args.input.title),
+    "excerpt": $util.dynamodb.toDynamoDBJson($ctx.args.input.excerpt),
+    "content": $util.dynamodb.toDynamoDBJson($ctx.args.input.content),
+    "author": $util.dynamodb.toDynamoDBJson($ctx.args.input.author),
+    "date": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601()),
+    "imageUrl": $util.dynamodb.toDynamoDBJson($ctx.args.input.imageUrl),
+    "category": $util.dynamodb.toDynamoDBJson($ctx.args.input.category),
+    "published": $util.dynamodb.toDynamoDBJson($util.defaultIfNull($ctx.args.input.published, true))
+  }
+}

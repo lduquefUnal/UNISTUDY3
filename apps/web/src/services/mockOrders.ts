@@ -1,73 +1,242 @@
-import type { Plan } from "./mockData";
+import type { Plan } from './mockData';
+import { graphqlRequest } from './appsyncClient';
 
-export type OrderStatus =
-    | 'CREATED'
-    | 'PENDING_PAYMENT'
-    | 'PAID'
-    | 'PENDING_ACTIVATION'
-    | 'ACTIVATED'
-    | 'FAILED'
-    | 'REFUND_REQUESTED'
-    | 'REFUNDED';
+export type OrderStatus = 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'CLOSED' | 'REFUNDED';
 
 export interface Order {
-    id: string; // Internal ID
-    ref: string; // Wompi/Public reference (e.g. ORD-123)
+    orderId: string;
+    reference: string;
+    clientPhone: string;
+    clientName?: string;
     planId: string;
+    planName?: string;
     amount: number;
-    customerName: string;
-    customerWhatsApp: string;
-    customerEmail?: string;
     status: OrderStatus;
     createdAt: string;
-    updatedAt: string;
+    expiresAt?: string | null;
+    customerEmail?: string | null;
 }
 
-// In-memory storage for mock orders (resets on reload, use localStorage for persistence if needed)
-const MOCK_ORDERS_STORAGE_KEY = 'unistudy_mock_orders';
+type ApiOrder = {
+    orderId: string;
+    reference: string;
+    clientPhone: string;
+    clientName?: string | null;
+    planId: string;
+    planName?: string | null;
+    amount: number;
+    status: OrderStatus;
+    createdAt: string;
+    expiresAt?: string | null;
+    customerEmail?: string | null;
+};
 
-const loadOrders = (): Order[] => {
-    const stored = localStorage.getItem(MOCK_ORDERS_STORAGE_KEY);
+type ListOrdersResponse = {
+    listOrders: {
+        items: ApiOrder[];
+        nextToken?: string | null;
+    };
+};
+
+type GetOrderResponse = {
+    getOrder: ApiOrder | null;
+};
+
+type CreateOrderResponse = {
+    createOrder: ApiOrder;
+};
+
+type UpdateOrderResponse = {
+    updateOrder: ApiOrder;
+};
+
+const LIST_ORDERS_QUERY = /* GraphQL */ `
+  query ListOrders($limit: Int, $nextToken: String) {
+    listOrders(limit: $limit, nextToken: $nextToken) {
+      items {
+        orderId
+        reference
+        clientPhone
+        clientName
+        planId
+        planName
+        amount
+        status
+        createdAt
+        expiresAt
+        customerEmail
+      }
+      nextToken
+    }
+  }
+`;
+
+const GET_ORDER_QUERY = /* GraphQL */ `
+  query GetOrder($orderId: ID!) {
+    getOrder(orderId: $orderId) {
+      orderId
+      reference
+      clientPhone
+      clientName
+      planId
+      planName
+      amount
+      status
+      createdAt
+      expiresAt
+      customerEmail
+    }
+  }
+`;
+
+const CREATE_ORDER_MUTATION = /* GraphQL */ `
+  mutation CreateOrder($input: CreateOrderInput!) {
+    createOrder(input: $input) {
+      orderId
+      reference
+      clientPhone
+      clientName
+      planId
+      planName
+      amount
+      status
+      createdAt
+      expiresAt
+      customerEmail
+    }
+  }
+`;
+
+const UPDATE_ORDER_MUTATION = /* GraphQL */ `
+  mutation UpdateOrder($orderId: ID!, $input: UpdateOrderInput!) {
+    updateOrder(orderId: $orderId, input: $input) {
+      orderId
+      reference
+      clientPhone
+      clientName
+      planId
+      planName
+      amount
+      status
+      createdAt
+      expiresAt
+      customerEmail
+    }
+  }
+`;
+
+const STORAGE_KEY = 'unistudy_orders';
+const API_MODE = import.meta.env.VITE_API_MODE ?? 'mock';
+const USE_LIVE_API = API_MODE === 'live';
+
+const loadOrdersFromStorage = (): Order[] => {
+    const stored = localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
 };
 
-const saveOrder = (order: Order) => {
-    const orders = loadOrders();
-    orders.push(order);
-    localStorage.setItem(MOCK_ORDERS_STORAGE_KEY, JSON.stringify(orders));
+const saveOrdersToStorage = (orders: Order[]) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
 };
 
-export const createMockOrder = async (
+const mapOrder = (order: ApiOrder): Order => ({
+    orderId: order.orderId,
+    reference: order.reference,
+    clientPhone: order.clientPhone,
+    clientName: order.clientName ?? undefined,
+    planId: order.planId,
+    planName: order.planName ?? undefined,
+    amount: order.amount,
+    status: order.status,
+    createdAt: order.createdAt,
+    expiresAt: order.expiresAt ?? undefined,
+    customerEmail: order.customerEmail ?? undefined
+});
+
+export const listOrders = async (): Promise<Order[]> => {
+    if (!USE_LIVE_API) {
+        return loadOrdersFromStorage();
+    }
+
+    try {
+        const data = await graphqlRequest<ListOrdersResponse>(LIST_ORDERS_QUERY, { limit: 200 });
+        const orders = data.listOrders.items.map(mapOrder);
+        saveOrdersToStorage(orders);
+        return orders;
+    } catch (error) {
+        console.error('Error loading orders from AppSync:', error);
+        return loadOrdersFromStorage();
+    }
+};
+
+export const getOrderByReference = async (reference: string): Promise<Order | null> => {
+    if (!USE_LIVE_API) {
+        const orders = loadOrdersFromStorage();
+        return orders.find(order => order.reference === reference) || null;
+    }
+
+    try {
+        const data = await graphqlRequest<GetOrderResponse>(GET_ORDER_QUERY, { orderId: reference });
+        return data.getOrder ? mapOrder(data.getOrder) : null;
+    } catch (error) {
+        console.error('Error loading order from AppSync:', error);
+        return null;
+    }
+};
+
+export const createOrder = async (
     plan: Plan,
     customerName: string,
-    customerWhatsApp: string,
+    customerPhone: string,
     customerEmail?: string
 ): Promise<Order> => {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 800));
+    const reference = `ORD-${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
 
-    const now = new Date().toISOString();
-    const ref = `ORD-${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
+    if (!USE_LIVE_API) {
+        const now = new Date().toISOString();
+        const newOrder: Order = {
+            orderId: reference,
+            reference,
+            clientPhone: customerPhone,
+            clientName: customerName,
+            planId: plan.id,
+            planName: plan.name,
+            amount: plan.price,
+            status: 'PENDING',
+            createdAt: now,
+            customerEmail
+        };
+        const orders = loadOrdersFromStorage();
+        const nextOrders = [newOrder, ...orders];
+        saveOrdersToStorage(nextOrders);
+        return newOrder;
+    }
 
-    const newOrder: Order = {
-        id: crypto.randomUUID(),
-        ref,
-        planId: plan.id,
-        amount: plan.price,
-        customerName,
-        customerWhatsApp,
-        customerEmail,
-        status: 'PENDING_ACTIVATION', // Skip payment for MVP mock
-        createdAt: now,
-        updatedAt: now
-    };
+    const data = await graphqlRequest<CreateOrderResponse>(CREATE_ORDER_MUTATION, {
+        input: {
+            clientPhone: customerPhone,
+            clientName: customerName,
+            planId: plan.id,
+            planName: plan.name,
+            amount: plan.price,
+            status: 'PENDING',
+            reference,
+            customerEmail
+        }
+    });
 
-    saveOrder(newOrder);
-    return newOrder;
+    return mapOrder(data.createOrder);
 };
 
-export const getMockOrder = async (ref: string): Promise<Order | null> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const orders = loadOrders();
-    return orders.find(o => o.ref === ref) || null;
+export const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
+    if (!USE_LIVE_API) {
+        const orders = loadOrdersFromStorage();
+        const nextOrders = orders.map(order => order.orderId === orderId ? { ...order, status } : order);
+        saveOrdersToStorage(nextOrders);
+        return;
+    }
+
+    await graphqlRequest<UpdateOrderResponse>(UPDATE_ORDER_MUTATION, {
+        orderId,
+        input: { status }
+    });
 };

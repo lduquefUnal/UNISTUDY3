@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
-import { getSeoGlobal, getSeoPages, saveSeoGlobal, saveSeoPages, type SeoGlobalConfig, type SeoPageConfig } from '../../services/mockSeo';
+import { loadSeoGlobal, loadSeoPages, saveSeoGlobal, saveSeoPages, type SeoGlobalConfig, type SeoPageConfig } from '../../services/mockSeo';
 import { Save, Globe, FileText, Search, RefreshCw } from 'lucide-react';
 
 export const AdminSEO: React.FC = () => {
@@ -11,9 +11,16 @@ export const AdminSEO: React.FC = () => {
     const [saved, setSaved] = useState(false);
 
     useEffect(() => {
-        setGlobalConfig(getSeoGlobal());
-        setPagesConfig(getSeoPages());
-        setLoading(false);
+        const loadData = async () => {
+            const [globalConfig, pages] = await Promise.all([
+                loadSeoGlobal(),
+                loadSeoPages()
+            ]);
+            setGlobalConfig(globalConfig);
+            setPagesConfig(pages);
+            setLoading(false);
+        };
+        loadData();
     }, []);
 
     const handleGlobalChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -27,9 +34,9 @@ export const AdminSEO: React.FC = () => {
         setPagesConfig(newPages);
     };
 
-    const handleSave = () => {
-        if (globalConfig) saveSeoGlobal(globalConfig);
-        saveSeoPages(pagesConfig);
+    const handleSave = async () => {
+        if (globalConfig) await saveSeoGlobal(globalConfig);
+        await saveSeoPages(pagesConfig);
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
     };

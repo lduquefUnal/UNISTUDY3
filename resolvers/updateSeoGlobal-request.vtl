@@ -1,0 +1,16 @@
+{
+  "version": "2017-02-28",
+  "operation": "PutItem",
+  "key": {
+    "id": $util.dynamodb.toDynamoDBJson("global")
+  },
+  "attributeValues": {
+    "siteName": $util.dynamodb.toDynamoDBJson($ctx.args.input.siteName),
+    "defaultTitle": $util.dynamodb.toDynamoDBJson($ctx.args.input.defaultTitle),
+    "defaultDescription": $util.dynamodb.toDynamoDBJson($ctx.args.input.defaultDescription),
+    "baseUrl": $util.dynamodb.toDynamoDBJson($ctx.args.input.baseUrl),
+    "ogImageUrl": $util.dynamodb.toDynamoDBJson($ctx.args.input.ogImageUrl),
+    "social": $util.dynamodb.toDynamoDBJson($ctx.args.input.social),
+    "contact": $util.dynamodb.toDynamoDBJson($ctx.args.input.contact)
+  }
+}

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import { CheckCircle2, CircleDashed, Users } from 'lucide-react';
 import { WhatsAppActions } from '../../components/admin/WhatsAppActions';
@@ -32,7 +32,11 @@ const formatRelativeTime = (date: string) => {
 };
 
 const AdminCRM: React.FC = () => {
-    const { clients, updateOrderStatus } = useClientStore();
+    const { clients, refresh, updateOrderStatus } = useClientStore();
+
+    useEffect(() => {
+        refresh();
+    }, [refresh]);
 
     const deals = useMemo<Deal[]>(() => (
         clients.flatMap(client => (
@@ -90,8 +94,8 @@ const AdminCRM: React.FC = () => {
                                 <DealCard
                                     key={deal.id}
                                     deal={deal}
-                                    onActivate={() => updateOrderStatus(deal.clientId, deal.orderId, 'active')}
-                                    onClose={() => updateOrderStatus(deal.clientId, deal.orderId, 'closed')}
+                                    onActivate={() => void updateOrderStatus(deal.orderId, 'active')}
+                                    onClose={() => void updateOrderStatus(deal.orderId, 'closed')}
                                 />
                             ))
                         )}
@@ -117,8 +121,8 @@ const AdminCRM: React.FC = () => {
                                 <DealCard
                                     key={deal.id}
                                     deal={deal}
-                                    onActivate={() => updateOrderStatus(deal.clientId, deal.orderId, 'active')}
-                                    onClose={() => updateOrderStatus(deal.clientId, deal.orderId, 'closed')}
+                                    onActivate={() => void updateOrderStatus(deal.orderId, 'active')}
+                                    onClose={() => void updateOrderStatus(deal.orderId, 'closed')}
                                 />
                             ))
                         )}

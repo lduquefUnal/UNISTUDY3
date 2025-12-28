@@ -1,0 +1,40 @@
+#set($exp = "")
+#set($expNames = {})
+#set($expValues = {})
+
+#if(!$util.isNull($ctx.args.input.name))
+  #set($exp = "$exp#name = :name")
+  $util.qr($expNames.put("#name", "name"))
+  $util.qr($expValues.put(":name", $util.dynamodb.toDynamoDBJson($ctx.args.input.name)))
+#end
+
+#if(!$util.isNull($ctx.args.input.email))
+  #if($exp != "") #set($exp = "$exp, ") #end
+  #set($exp = "$exp#email = :email")
+  $util.qr($expNames.put("#email", "email"))
+  $util.qr($expValues.put(":email", $util.dynamodb.toDynamoDBJson($ctx.args.input.email)))
+#end
+
+#if(!$util.isNull($ctx.args.input.notes))
+  #if($exp != "") #set($exp = "$exp, ") #end
+  #set($exp = "$exp#notes = :notes")
+  $util.qr($expNames.put("#notes", "notes"))
+  $util.qr($expValues.put(":notes", $util.dynamodb.toDynamoDBJson($ctx.args.input.notes)))
+#end
+
+#if($exp == "")
+  $util.error("No fields to update", "BadRequest")
+#end
+
+{
+  "version": "2017-02-28",
+  "operation": "UpdateItem",
+  "key": {
+    "phone": $util.dynamodb.toDynamoDBJson($ctx.args.phone)
+  },
+  "update": {
+    "expression": "SET $exp",
+    "expressionNames": $util.toJson($expNames),
+    "expressionValues": $util.toJson($expValues)
+  }
+}

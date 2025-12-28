@@ -1,0 +1,22 @@
+{
+  "version": "2017-02-28",
+  "operation": "PutItem",
+  "key": {
+    "planId": $util.dynamodb.toDynamoDBJson($ctx.args.planId)
+  },
+  "attributeValues": {
+    "name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
+    "description": $util.dynamodb.toDynamoDBJson($ctx.args.input.description),
+    "price": $util.dynamodb.toDynamoDBJson($ctx.args.input.price),
+    "period": $util.dynamodb.toDynamoDBJson($ctx.args.input.period),
+    "features": $util.dynamodb.toDynamoDBJson($ctx.args.input.features),
+    "isRecommended": $util.dynamodb.toDynamoDBJson($util.defaultIfNull($ctx.args.input.isRecommended, false)),
+    "highlight": $util.dynamodb.toDynamoDBJson($ctx.args.input.highlight),
+    "availableSpots": $util.dynamodb.toDynamoDBJson($ctx.args.input.availableSpots),
+    "isActive": $util.dynamodb.toDynamoDBJson($util.defaultIfNull($ctx.args.input.isActive, true)),
+    "category": $util.dynamodb.toDynamoDBJson($ctx.args.input.category),
+    "priority": $util.dynamodb.toDynamoDBJson($ctx.args.input.priority),
+    "monthlyPrice": $util.dynamodb.toDynamoDBJson($ctx.args.input.monthlyPrice),
+    "annualPrice": $util.dynamodb.toDynamoDBJson($ctx.args.input.annualPrice)
+  }
+}

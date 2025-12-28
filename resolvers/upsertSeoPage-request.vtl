@@ -1,0 +1,14 @@
+{
+  "version": "2017-02-28",
+  "operation": "PutItem",
+  "key": {
+    "path": $util.dynamodb.toDynamoDBJson($ctx.args.input.path)
+  },
+  "attributeValues": {
+    "title": $util.dynamodb.toDynamoDBJson($ctx.args.input.title),
+    "description": $util.dynamodb.toDynamoDBJson($ctx.args.input.description),
+    "ogImage": $util.dynamodb.toDynamoDBJson($ctx.args.input.ogImage),
+    "keywords": $util.dynamodb.toDynamoDBJson($ctx.args.input.keywords),
+    "noindex": $util.dynamodb.toDynamoDBJson($util.defaultIfNull($ctx.args.input.noindex, false))
+  }
+}

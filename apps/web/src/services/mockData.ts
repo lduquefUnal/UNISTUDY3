@@ -10,6 +10,7 @@ export interface Plan {
     highlight?: string;
     description: string;
     availableSpots?: number; // Simulated logic
+    isActive?: boolean;
 }
 
 export interface FAQ {

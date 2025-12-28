@@ -1,0 +1,28 @@
+{
+  "version": "2017-02-28",
+  "operation": "UpdateItem",
+  "key": {
+    "postId": $util.dynamodb.toDynamoDBJson($ctx.args.postId)
+  },
+  "update": {
+    "expression": "SET #title = :title, #excerpt = :excerpt, #content = :content, #author = :author, #imageUrl = :imageUrl, #category = :category, #published = :published",
+    "expressionNames": {
+      "#title": "title",
+      "#excerpt": "excerpt",
+      "#content": "content",
+      "#author": "author",
+      "#imageUrl": "imageUrl",
+      "#category": "category",
+      "#published": "published"
+    },
+    "expressionValues": {
+      ":title": $util.dynamodb.toDynamoDBJson($ctx.args.input.title),
+      ":excerpt": $util.dynamodb.toDynamoDBJson($ctx.args.input.excerpt),
+      ":content": $util.dynamodb.toDynamoDBJson($ctx.args.input.content),
+      ":author": $util.dynamodb.toDynamoDBJson($ctx.args.input.author),
+      ":imageUrl": $util.dynamodb.toDynamoDBJson($ctx.args.input.imageUrl),
+      ":category": $util.dynamodb.toDynamoDBJson($ctx.args.input.category),
+      ":published": $util.dynamodb.toDynamoDBJson($util.defaultIfNull($ctx.args.input.published, true))
+    }
+  }
+}

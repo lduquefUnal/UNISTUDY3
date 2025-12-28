@@ -6,23 +6,31 @@ import { useClientStore } from '../../store/clients';
 import type { OrderHistory } from '../../store/clients';
 import {
     clearReminderOverride,
-    getReminderOverrides,
-    getReminderTemplate,
+    loadReminderOverrides,
+    loadReminderTemplate,
     saveReminderTemplate,
     setReminderOverride,
     type ReminderOverrides
 } from '../../services/remindersStore';
 
 export const AdminReminders: React.FC = () => {
-    const { clients } = useClientStore();
+    const { clients, refresh } = useClientStore();
     const [overrides, setOverrides] = useState<ReminderOverrides>({});
     const [template, setTemplate] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        setOverrides(getReminderOverrides());
-        setTemplate(getReminderTemplate());
-    }, []);
+        const loadData = async () => {
+            await refresh();
+            const [loadedOverrides, loadedTemplate] = await Promise.all([
+                loadReminderOverrides(),
+                loadReminderTemplate()
+            ]);
+            setOverrides(loadedOverrides);
+            setTemplate(loadedTemplate);
+        };
+        loadData();
+    }, [refresh]);
 
     const normalizeDateInput = (value: string) => {
         const parsed = new Date(value);
@@ -106,14 +114,14 @@ export const AdminReminders: React.FC = () => {
         openWhatsApp(`57${reminder.phone}`, message);
     };
 
-    const handleTemplateChange = (value: string) => {
+    const handleTemplateChange = async (value: string) => {
         setTemplate(value);
-        saveReminderTemplate(value);
+        await saveReminderTemplate(value);
     };
 
-    const handleReminderDateChange = (clientId: string, value: string) => {
+    const handleReminderDateChange = async (clientId: string, value: string) => {
         if (!value) {
-            clearReminderOverride(clientId);
+            await clearReminderOverride(clientId);
             setOverrides(prev => {
                 const next = { ...prev };
                 delete next[clientId];
@@ -121,7 +129,7 @@ export const AdminReminders: React.FC = () => {
             });
             return;
         }
-        setReminderOverride(clientId, value);
+        await setReminderOverride(clientId, value);
         setOverrides(prev => ({ ...prev, [clientId]: value }));
     };
 

@@ -1,50 +1,37 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import { Users, ShoppingBag, DollarSign } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useClientStore } from '../../store/clients';
 
-// Load orders from localStorage
-const loadOrders = () => {
-    const stored = localStorage.getItem('unistudy_mock_orders');
-    return stored ? JSON.parse(stored) : [];
-};
-
 export const AdminDashboard: React.FC = () => {
-    const { clients } = useClientStore();
-    const [orders, setOrders] = useState<any[]>([]);
-    const [chartData, setChartData] = useState<any[]>([]);
+    const { clients, orders, refresh } = useClientStore();
 
     useEffect(() => {
-        // Load orders
-        const allOrders = loadOrders();
-        setOrders(allOrders);
+        refresh();
+    }, [refresh]);
 
-        // Generate chart data (last 7 days)
+    const chartData = useMemo(() => {
         const last7Days = Array.from({ length: 7 }, (_, i) => {
             const date = new Date();
             date.setDate(date.getDate() - (6 - i));
             return date.toISOString().split('T')[0];
         });
 
-        const chartData = last7Days.map(date => {
-            const dayOrders = allOrders.filter((o: any) =>
-                o.createdAt.split('T')[0] === date
-            );
+        return last7Days.map(date => {
+            const dayOrders = orders.filter(order => order.createdAt.split('T')[0] === date);
             return {
                 date: new Date(date).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }),
                 pedidos: dayOrders.length,
-                ingresos: dayOrders.reduce((sum: number, o: any) => sum + (o.amount || 0), 0) / 1000
+                ingresos: dayOrders.reduce((sum, order) => sum + (order.amount || 0), 0) / 1000
             };
         });
-
-        setChartData(chartData);
-    }, []);
+    }, [orders]);
 
     // Calculate stats
-    const totalRevenue = orders.reduce((sum, o) => sum + (o.amount || 0), 0);
-    const activeOrders = orders.filter(o =>
-        ['PAID', 'PENDING_ACTIVATION', 'ACTIVATED'].includes(o.status)
+    const totalRevenue = orders.reduce((sum, order) => sum + (order.amount || 0), 0);
+    const activeOrders = orders.filter(order =>
+        ['PENDING', 'ACTIVE'].includes(order.status)
     ).length;
 
     return (
@@ -115,8 +102,8 @@ export const AdminDashboard: React.FC = () => {
                         <div className="text-left space-y-2">
                             {orders.slice(0, 5).map((order, i) => (
                                 <div key={i} className="flex justify-between items-center py-2 border-b border-gray-100">
-                                    <span className="text-gray-900 font-medium">{order.ref}</span>
-                                    <span className="text-gray-500">{order.customerName}</span>
+                                    <span className="text-gray-900 font-medium">{order.reference}</span>
+                                    <span className="text-gray-500">{order.clientName || order.clientPhone}</span>
                                     <span className="text-sm text-blue-600">${(order.amount / 1000).toFixed(1)}k</span>
                                 </div>
                             ))}

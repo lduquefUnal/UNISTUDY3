@@ -12,12 +12,20 @@ const Checkout: React.FC = () => {
     const [plan, setPlan] = useState<Plan | null>(null);
 
     useEffect(() => {
-        const foundPlan = getPlanById(planId);
-        if (!foundPlan) {
-            navigate('/planes');
-            return;
-        }
-        setPlan(foundPlan);
+        let active = true;
+        const loadPlan = async () => {
+            const foundPlan = await getPlanById(planId);
+            if (!active) return;
+            if (!foundPlan) {
+                navigate('/planes');
+                return;
+            }
+            setPlan(foundPlan);
+        };
+        loadPlan();
+        return () => {
+            active = false;
+        };
     }, [planId, navigate]);
 
     if (!plan) return null;

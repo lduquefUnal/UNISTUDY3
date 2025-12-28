@@ -2,17 +2,26 @@ import React, { useEffect, useState } from 'react';
 import { SEOHead } from '../components/seo/SEOHead';
 import { Layout } from '../components/layout/Layout';
 import type { Plan } from '../services/mockData';
-import { getPlans, PLANS_UPDATED_EVENT } from '../services/plansStore';
+import { listPlans, PLANS_UPDATED_EVENT } from '../services/plansStore';
 import { PlanCard } from '../components/ui/PlanCard';
 
 const Planes: React.FC = () => {
     const [plans, setPlans] = useState<Plan[]>([]);
 
     useEffect(() => {
-        const loadPlans = () => setPlans(getPlans());
+        let active = true;
+        const loadPlans = async () => {
+            const data = await listPlans();
+            if (active) {
+                setPlans(data);
+            }
+        };
         loadPlans();
         window.addEventListener(PLANS_UPDATED_EVENT, loadPlans);
-        return () => window.removeEventListener(PLANS_UPDATED_EVENT, loadPlans);
+        return () => {
+            active = false;
+            window.removeEventListener(PLANS_UPDATED_EVENT, loadPlans);
+        };
     }, []);
 
     return (

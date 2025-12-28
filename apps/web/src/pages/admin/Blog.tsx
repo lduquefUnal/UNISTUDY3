@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
-import { createBlogPost, getBlogPosts, updateBlogPost, type BlogPost } from '../../services/mockBlog';
+import { createBlogPost, listBlogPosts, updateBlogPost, type BlogPost } from '../../services/mockBlog';
 import { Plus } from 'lucide-react';
 
 type BlogFormState = {
@@ -25,7 +25,11 @@ const AdminBlog: React.FC = () => {
     const [formState, setFormState] = useState<BlogFormState>(EMPTY_FORM);
 
     useEffect(() => {
-        setPosts(getBlogPosts());
+        const loadPosts = async () => {
+            const data = await listBlogPosts();
+            setPosts(data);
+        };
+        loadPosts();
     }, []);
 
     const openCreate = () => {
@@ -49,27 +53,28 @@ const AdminBlog: React.FC = () => {
         setFormState(EMPTY_FORM);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (activePostId === 'new') {
-            const post = createBlogPost({
+            await createBlogPost({
                 ...formState,
                 author: 'Admin',
+                published: true,
                 imageUrl: formState.imageUrl || undefined
             });
-            setPosts([post, ...posts]);
         } else if (activePostId) {
-            const nextPosts = updateBlogPost(activePostId, {
+            await updateBlogPost(activePostId, {
                 title: formState.title,
                 excerpt: formState.excerpt,
                 content: formState.content,
                 category: formState.category,
                 imageUrl: formState.imageUrl || undefined
             });
-            setPosts(nextPosts);
         }
 
+        const data = await listBlogPosts();
+        setPosts(data);
         closeForm();
     };
 

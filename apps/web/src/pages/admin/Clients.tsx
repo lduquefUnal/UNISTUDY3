@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import { useClientStore } from '../../store/clients';
 import type { Client } from '../../store/clients';
@@ -7,8 +7,12 @@ import { Search, MessageCircle, Phone, Mail, Calendar } from 'lucide-react';
 import { openWhatsApp } from '../../utils/whatsapp';
 
 export const Clients: React.FC = () => {
-    const { clients } = useClientStore();
+    const { clients, refresh } = useClientStore();
     const [searchTerm, setSearchTerm] = useState('');
+
+    useEffect(() => {
+        refresh();
+    }, [refresh]);
 
     const filteredClients = clients.filter(client =>
         client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

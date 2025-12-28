@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Layout } from '../components/layout/Layout';
-import { getMockOrder, type Order } from '../services/mockOrders';
+import { getOrderByReference, type Order } from '../services/mockOrders';
 import { CheckCircle, Clock, AlertTriangle, ArrowRight } from 'lucide-react';
 
 const PaymentResult: React.FC = () => {
@@ -12,7 +12,7 @@ const PaymentResult: React.FC = () => {
 
     useEffect(() => {
         if (ref) {
-            getMockOrder(ref).then(setOrder).finally(() => setLoading(false));
+            getOrderByReference(ref).then(setOrder).finally(() => setLoading(false));
         } else {
             setLoading(false);
         }
@@ -41,7 +41,7 @@ const PaymentResult: React.FC = () => {
         );
     }
 
-    const isSuccess = ['PAID', 'PENDING_ACTIVATION', 'ACTIVATED'].includes(order.status);
+    const isSuccess = ['PENDING', 'ACTIVE'].includes(order.status);
 
     return (
         <Layout>
@@ -53,7 +53,7 @@ const PaymentResult: React.FC = () => {
                                 <CheckCircle className="w-10 h-10" />
                             </div>
                             <h1 className="text-3xl font-bold text-gray-900 mb-2">¡Pago Exitoso!</h1>
-                            <p className="text-gray-500 mb-8">Referencia: <span className="font-mono text-gray-900">{order.ref}</span></p>
+                            <p className="text-gray-500 mb-8">Referencia: <span className="font-mono text-gray-900">{order.reference}</span></p>
 
                             <div className="bg-blue-50 rounded-2xl p-6 w-full mb-8 text-left">
                                 <h3 className="font-bold text-blue-900 flex items-center gap-2 mb-2">
@@ -63,7 +63,7 @@ const PaymentResult: React.FC = () => {
                                     Tu plan está en proceso de activación manual.
                                 </p>
                                 <ol className="list-decimal list-inside text-sm text-blue-800 space-y-2">
-                                    <li>Recibirás un mensaje en tu WhatsApp: <strong>{order.customerWhatsApp}</strong>.</li>
+                                    <li>Recibirás un mensaje en tu WhatsApp: <strong>{order.clientPhone}</strong>.</li>
                                     <li>Te enviaremos las credenciales de acceso.</li>
                                     <li>Tiempo estimado: <strong>&lt; 2 horas</strong> (horario laboral).</li>
                                 </ol>

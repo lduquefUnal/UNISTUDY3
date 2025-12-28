@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Plan } from '../../services/mockData';
-import { createMockOrder } from '../../services/mockOrders';
+import { createOrder } from '../../services/mockOrders';
 import { Lock, MessageCircle, User, Mail, Phone, Copy, Check } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { openWhatsApp } from '../../utils/whatsapp';
 import { useClientStore } from '../../store/clients';
+import { createClient } from '../../services/clientsService';
 
 interface CheckoutFormProps {
     plan: Plan;
@@ -17,8 +18,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ plan }) => {
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState(1); // 1: Datos, 2: Pago
 
-    // CRM Store Actions
-    const { addClient, addOrderToClient } = useClientStore();
+    const { refresh } = useClientStore();
 
     // Form State
     const [formData, setFormData] = useState({
@@ -46,24 +46,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ plan }) => {
             return;
         }
 
-        setLoading(true);
-
-        try {
-            const fullName = `${formData.firstName} ${formData.lastName}`;
-            const order = await createMockOrder(plan, fullName, formData.phone, formData.email);
-
-            // Redirect to WhatsApp with receipt message
-            const message = `Hola, acabo de realizar el pago del * ${plan.name}* (Ref: ${order.ref}). Aquí adjunto mi comprobante.`;
-            openWhatsApp('573000000000', message);
-
-            // Redirect to success page
-            navigate(`/ pago / resultado ? ref = ${order.ref} `);
-        } catch (error) {
-            console.error('Checkout error:', error);
-            alert('Ocurrió un error al procesar tu solicitud.');
-        } finally {
-            setLoading(false);
-        }
+        setLoading(false);
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,41 +56,29 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ plan }) => {
     const handleManualConfirmation = async () => {
         setLoading(true);
         try {
-            // 1. CRM PERSISTENCE (ClientStore)
             const fullName = `${formData.firstName} ${formData.lastName}`;
             const cleanPhone = formData.phone.replace(/\D/g, '');
 
-            addClient({
-                id: cleanPhone,
-                name: fullName,
+            await createClient({
                 phone: cleanPhone,
-                email: formData.email,
-                createdAt: new Date().toISOString()
+                name: fullName,
+                email: formData.email || undefined,
+                notes: undefined
             });
 
-            // 2. CREATE ORDER IN MOCK SYSTEM (for PaymentResult page)
-            const mockOrder = await createMockOrder(
+            const order = await createOrder(
                 plan,
                 fullName,
                 cleanPhone,
                 formData.email
             );
 
-            // 3. ADD ORDER TO CLIENT HISTORY
-            addOrderToClient(cleanPhone, {
-                id: mockOrder.ref,
-                plan: plan.name,
-                date: mockOrder.createdAt,
-                status: 'pending'
-            });
+            await refresh();
 
-            // 4. SEND WHATSAPP WITH PAYMENT INSTRUCTIONS
-            const message = `Hola, envío comprobante de pago con llave/QR para el *${plan.name}* (Ref: ${mockOrder.ref}).`;
+            const message = `Hola, envío comprobante de pago con llave/QR para el *${plan.name}* (Ref: ${order.reference}).`;
             openWhatsApp('573332260032', message);
 
-            // 5. REDIRECT TO RESULT PAGE
-            navigate(`/pago/resultado?ref=${mockOrder.ref}`);
-
+            navigate(`/pago/resultado?ref=${order.reference}`);
         } catch (error) {
             console.error('Error al procesar pago:', error);
             alert('Hubo un error al procesar tu pedido. Por favor intenta de nuevo.');

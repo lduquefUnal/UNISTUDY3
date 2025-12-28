@@ -9,31 +9,93 @@ type Client {
 type Order {
   orderId: ID!
   clientPhone: String!
+  clientName: String
   planId: String!
+  planName: String
   status: OrderStatus!
   amount: Float!
   createdAt: AWSDateTime!
   expiresAt: AWSDateTime
   reference: String!
+  customerEmail: String
 }
 
 type Plan {
   planId: ID!
   name: String!
   description: String!
-  monthlyPrice: Float!
-  annualPrice: Float!
+  price: Float!
+  period: String!
   features: [String]!
-  category: String!
-  isActive: Boolean!
+  isRecommended: Boolean
+  highlight: String
+  availableSpots: Int
+  isActive: Boolean
+  category: String
   priority: Int
+  monthlyPrice: Float
+  annualPrice: Float
 }
 
 enum OrderStatus {
   PENDING
   ACTIVE
   EXPIRED
+  CLOSED
   REFUNDED
+}
+
+type BlogPost {
+  postId: ID!
+  title: String!
+  excerpt: String!
+  content: String!
+  author: String!
+  date: AWSDateTime!
+  imageUrl: String
+  category: String!
+  published: Boolean
+}
+
+type SeoGlobal {
+  id: ID!
+  siteName: String!
+  defaultTitle: String!
+  defaultDescription: String!
+  baseUrl: String!
+  ogImageUrl: String!
+  social: SeoSocial
+  contact: SeoContact
+}
+
+type SeoSocial {
+  facebook: String
+  instagram: String
+  tiktok: String
+}
+
+type SeoContact {
+  whatsapp: String
+  email: String
+}
+
+type SeoPage {
+  path: ID!
+  title: String!
+  description: String!
+  ogImage: String
+  keywords: String
+  noindex: Boolean
+}
+
+type ReminderTemplate {
+  id: ID!
+  template: String!
+}
+
+type ReminderOverride {
+  clientId: ID!
+  reminderDate: AWSDateTime!
 }
 
 type Query {
@@ -44,6 +106,12 @@ type Query {
   getOrdersByClient(clientPhone: String!): [Order]
   listPlans: [Plan]
   getPlan(planId: ID!): Plan
+  listBlogPosts: [BlogPost]
+  getBlogPost(postId: ID!): BlogPost
+  getSeoGlobal: SeoGlobal
+  listSeoPages: [SeoPage]
+  getReminderTemplate: ReminderTemplate
+  listReminderOverrides: [ReminderOverride]
 }
 
 type Mutation {
@@ -53,6 +121,14 @@ type Mutation {
   updateOrder(orderId: ID!, input: UpdateOrderInput!): Order
   createPlan(input: CreatePlanInput!): Plan
   updatePlan(planId: ID!, input: UpdatePlanInput!): Plan
+  createBlogPost(input: CreateBlogPostInput!): BlogPost
+  updateBlogPost(postId: ID!, input: UpdateBlogPostInput!): BlogPost
+  updateSeoGlobal(input: UpdateSeoGlobalInput!): SeoGlobal
+  upsertSeoPage(input: UpsertSeoPageInput!): SeoPage
+  deleteSeoPage(path: ID!): ID
+  updateReminderTemplate(input: UpdateReminderTemplateInput!): ReminderTemplate
+  setReminderOverride(input: ReminderOverrideInput!): ReminderOverride
+  deleteReminderOverride(clientId: ID!): ID
 }
 
 input CreateClientInput {
@@ -70,10 +146,13 @@ input UpdateClientInput {
 
 input CreateOrderInput {
   clientPhone: String!
+  clientName: String
   planId: String!
+  planName: String
   amount: Float!
   status: OrderStatus!
   reference: String!
+  customerEmail: String
   expiresAt: AWSDateTime
 }
 
@@ -82,27 +161,96 @@ input UpdateOrderInput {
   expiresAt: AWSDateTime
 }
 
+input CreateBlogPostInput {
+  title: String!
+  excerpt: String!
+  content: String!
+  author: String!
+  imageUrl: String
+  category: String!
+  published: Boolean
+}
+
+input UpdateBlogPostInput {
+  title: String
+  excerpt: String
+  content: String
+  author: String
+  imageUrl: String
+  category: String
+  published: Boolean
+}
+
+input UpdateSeoGlobalInput {
+  siteName: String!
+  defaultTitle: String!
+  defaultDescription: String!
+  baseUrl: String!
+  ogImageUrl: String!
+  social: SeoSocialInput
+  contact: SeoContactInput
+}
+
+input SeoSocialInput {
+  facebook: String
+  instagram: String
+  tiktok: String
+}
+
+input SeoContactInput {
+  whatsapp: String
+  email: String
+}
+
+input UpsertSeoPageInput {
+  path: ID!
+  title: String!
+  description: String!
+  ogImage: String
+  keywords: String
+  noindex: Boolean
+}
+
+input UpdateReminderTemplateInput {
+  template: String!
+}
+
+input ReminderOverrideInput {
+  clientId: ID!
+  reminderDate: AWSDateTime!
+}
+
 input CreatePlanInput {
   planId: String!
   name: String!
   description: String!
-  monthlyPrice: Float!
-  annualPrice: Float!
+  price: Float!
+  period: String!
   features: [String]!
-  category: String!
-  isActive: Boolean!
+  isRecommended: Boolean
+  highlight: String
+  availableSpots: Int
+  isActive: Boolean
+  category: String
   priority: Int
+  monthlyPrice: Float
+  annualPrice: Float
 }
 
 input UpdatePlanInput {
   name: String
   description: String
+  price: Float
+  period: String
+  features: [String]
+  isRecommended: Boolean
+  highlight: String
+  availableSpots: Int
+  isActive: Boolean
+  category: String
+  priority: Int
   monthlyPrice: Float
   annualPrice: Float
-  features: [String]
-  category: String
-  isActive: Boolean
-  priority: Int
 }
 
 type ClientConnection {

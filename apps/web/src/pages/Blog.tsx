@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
 import { SEOHead } from '../components/seo/SEOHead';
 import { Layout } from '../components/layout/Layout';
-import { getBlogPosts, type BlogPost } from '../services/mockBlog';
+import { listBlogPosts, type BlogPost } from '../services/mockBlog';
 import { Calendar, User, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Blog = () => {
     const [posts, setPosts] = useState<BlogPost[]>([]);
     useEffect(() => {
-        setPosts(getBlogPosts());
+        const loadPosts = async () => {
+            const data = await listBlogPosts();
+            setPosts(data);
+        };
+        loadPosts();
     }, []);
 
     return (

@@ -2,14 +2,17 @@
   "version": "2017-02-28",
   "operation": "PutItem",
   "key": {
-    "orderId": $util.dynamodb.toDynamoDBJson($util.autoId())
+    "orderId": $util.dynamodb.toDynamoDBJson($ctx.args.input.reference)
   },
   "attributeValues": {
     "clientPhone": $util.dynamodb.toDynamoDBJson($ctx.args.input.clientPhone),
+    "clientName": $util.dynamodb.toDynamoDBJson($ctx.args.input.clientName),
     "planId": $util.dynamodb.toDynamoDBJson($ctx.args.input.planId),
+    "planName": $util.dynamodb.toDynamoDBJson($ctx.args.input.planName),
     "status": $util.dynamodb.toDynamoDBJson($ctx.args.input.status),
     "amount": $util.dynamodb.toDynamoDBJson($ctx.args.input.amount),
     "reference": $util.dynamodb.toDynamoDBJson($ctx.args.input.reference),
+    "customerEmail": $util.dynamodb.toDynamoDBJson($ctx.args.input.customerEmail),
     "createdAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601()),
     "expiresAt": $util.dynamodb.toDynamoDBJson($ctx.args.input.expiresAt)
   }

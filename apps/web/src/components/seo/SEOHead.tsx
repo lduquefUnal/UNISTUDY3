@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
-import { getSeoGlobal, getSeoForPath } from '../../services/mockSeo';
+import { getSeoForPath, getSeoGlobal, loadSeoGlobal, loadSeoPages } from '../../services/mockSeo';
 
 interface SEOHeadProps {
     title?: string;
@@ -19,8 +19,20 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     type = 'website'
 }) => {
     const location = useLocation();
-    const globalConfig = getSeoGlobal();
-    const pageConfig = getSeoForPath(location.pathname);
+    const [globalConfig, setGlobalConfig] = useState(getSeoGlobal());
+    const [pageConfig, setPageConfig] = useState(getSeoForPath(location.pathname));
+
+    useEffect(() => {
+        const loadSeo = async () => {
+            const [global] = await Promise.all([
+                loadSeoGlobal(),
+                loadSeoPages()
+            ]);
+            setGlobalConfig(global);
+            setPageConfig(getSeoForPath(location.pathname));
+        };
+        loadSeo();
+    }, [location.pathname]);
 
     // Hierarchy: Prop > Page Config > Global Default
     const finalTitle = title || pageConfig?.title || globalConfig.defaultTitle;

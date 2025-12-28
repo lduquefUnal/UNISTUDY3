@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import type { Plan } from '../../services/mockData';
-import { getPlans, savePlans, PLANS_UPDATED_EVENT } from '../../services/plansStore';
+import { listPlans, createPlan, updatePlan, deletePlan, PLANS_UPDATED_EVENT } from '../../services/plansStore';
 import { Edit2, Plus, Save, Trash2, X } from 'lucide-react';
 
 type PlanFormState = {
@@ -37,7 +37,7 @@ const planToForm = (plan: Plan): PlanFormState => ({
     availableSpots: plan.availableSpots ? String(plan.availableSpots) : ''
 });
 
-const formToPlan = (form: PlanFormState, existingId?: string): Plan => {
+const formToPlan = (form: PlanFormState, existingPlan?: Plan): Plan => {
     const features = form.features
         .split('\n')
         .map(feature => feature.trim())
@@ -47,7 +47,7 @@ const formToPlan = (form: PlanFormState, existingId?: string): Plan => {
     const spotsValue = Number(form.availableSpots);
 
     return {
-        id: existingId ?? crypto.randomUUID(),
+        id: existingPlan?.id ?? crypto.randomUUID(),
         name: form.name.trim(),
         price: Number.isFinite(priceValue) ? priceValue : 0,
         period: form.period.trim(),
@@ -57,7 +57,8 @@ const formToPlan = (form: PlanFormState, existingId?: string): Plan => {
         highlight: form.highlight.trim() || undefined,
         availableSpots: form.availableSpots.trim()
             ? (Number.isFinite(spotsValue) ? spotsValue : undefined)
-            : undefined
+            : undefined,
+        isActive: existingPlan?.isActive ?? true
     };
 };
 
@@ -67,10 +68,19 @@ const AdminPlans: React.FC = () => {
     const [formState, setFormState] = useState<PlanFormState>(EMPTY_FORM);
 
     useEffect(() => {
-        const loadPlans = () => setPlans(getPlans());
+        let active = true;
+        const loadPlans = async () => {
+            const data = await listPlans();
+            if (active) {
+                setPlans(data);
+            }
+        };
         loadPlans();
         window.addEventListener(PLANS_UPDATED_EVENT, loadPlans);
-        return () => window.removeEventListener(PLANS_UPDATED_EVENT, loadPlans);
+        return () => {
+            active = false;
+            window.removeEventListener(PLANS_UPDATED_EVENT, loadPlans);
+        };
     }, []);
 
     const startCreate = () => {
@@ -88,22 +98,25 @@ const AdminPlans: React.FC = () => {
         setFormState(EMPTY_FORM);
     };
 
-    const handleSave = (event: React.FormEvent) => {
+    const handleSave = async (event: React.FormEvent) => {
         event.preventDefault();
-        const plan = formToPlan(formState, editingId === 'new' ? undefined : editingId ?? undefined);
-        const nextPlans = editingId && editingId !== 'new'
-            ? plans.map(item => item.id === plan.id ? plan : item)
-            : [plan, ...plans];
-        setPlans(nextPlans);
-        savePlans(nextPlans);
+        const existingPlan = editingId && editingId !== 'new'
+            ? plans.find(item => item.id === editingId)
+            : undefined;
+        const plan = formToPlan(formState, existingPlan);
+        if (editingId && editingId !== 'new') {
+            await updatePlan(plan);
+        } else {
+            await createPlan(plan);
+        }
+        setPlans(await listPlans());
         cancelEdit();
     };
 
-    const handleDelete = (planId: string) => {
+    const handleDelete = async (planId: string) => {
         if (!window.confirm('¿Eliminar este plan? Esta acción no se puede deshacer.')) return;
-        const nextPlans = plans.filter(plan => plan.id !== planId);
-        setPlans(nextPlans);
-        savePlans(nextPlans);
+        await deletePlan(planId);
+        setPlans(await listPlans());
     };
 
     return (
