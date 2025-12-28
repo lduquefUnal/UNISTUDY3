@@ -46,83 +46,86 @@ export const AdminDashboard: React.FC = () => {
     const activeOrders = orders.filter(o =>
         ['PAID', 'PENDING_ACTIVATION', 'ACTIVATED'].includes(o.status)
     ).length;
+
     return (
         <AdminLayout>
             <h1 className="text-2xl font-bold text-gray-900 mb-8">Panel de Control</h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <StatsCard icon={CreditCard} label="Ventas del Mes" value="$4.2M" trend="+8%" color="text-green-600" />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <StatsCard
-                        icon={Users}
-                        label="Clientes Totales"
-                        value={clients.length.toString()}
-                        trend="+12% vs mes anterior"
-                        color="text-blue-600"
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <StatsCard
-                        icon={Users}
-                        label="Clientes Totales"
-                        value={clients.length.toString()}
-                        trend="+12% vs mes anterior"
-                        color="text-blue-600"
-                    />
-                    <StatsCard
-                        icon={ShoppingBag}
-                        label="Pedidos Activos"
-                        value={activeOrders.toString()}
-                        trend={`${orders.length} total`}
-                        color="text-green-600"
-                    />
-                    <StatsCard
-                        icon={DollarSign}
-                        label="Ingresos Totales"
-                        value={`$${(totalRevenue / 1000).toFixed(0)}k`}
-                        trend="COP"
-                        color="text-purple-600"
-                    />
-                </div>
+                    icon={Users}
+                    label="Clientes Totales"
+                    value={clients.length.toString()}
+                    trend="+12% vs mes anterior"
+                    color="text-blue-600"
+                />
+                <StatsCard
+                    icon={ShoppingBag}
+                    label="Pedidos Activos"
+                    value={activeOrders.toString()}
+                    trend={`${orders.length} total`}
+                    color="text-green-600"
+                />
+                <StatsCard
+                    icon={DollarSign}
+                    label="Ingresos Totales"
+                    value={`$${(totalRevenue / 1000).toFixed(0)}k`}
+                    trend="COP"
+                    color="text-purple-600"
+                />
+            </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <h2 className="text-lg font-bold mb-6">Historial de Pedidos (Semana)</h2>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <AreaChart data={chartData}>
-                                <defs>
-                                    <linearGradient id="colorPedidos" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                <XAxis dataKey="date" stroke="#6b7280" style={{ fontSize: '12px' }} />
-                                <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} />
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: '#fff',
-                                        border: '1px solid #e5e7eb',
-                                        borderRadius: '8px',
-                                        padding: '8px 12px'
-                                    }}
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="pedidos"
-                                    stroke="#3b82f6"
-                                    fillOpacity={1}
-                                    fill="url(#colorPedidos)"
-                                    strokeWidth={2}
-                                />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+                <h2 className="text-lg font-bold mb-6">Historial de Pedidos (Últimos 7 días)</h2>
+                <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={chartData}>
+                        <defs>
+                            <linearGradient id="colorPedidos" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis dataKey="date" stroke="#6b7280" style={{ fontSize: '12px' }} />
+                        <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} />
+                        <Tooltip
+                            contentStyle={{
+                                backgroundColor: '#fff',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '8px',
+                                padding: '8px 12px'
+                            }}
+                        />
+                        <Area
+                            type="monotone"
+                            dataKey="pedidos"
+                            stroke="#3b82f6"
+                            fillOpacity={1}
+                            fill="url(#colorPedidos)"
+                            strokeWidth={2}
+                        />
+                    </AreaChart>
+                </ResponsiveContainer>
+            </div>
 
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <h2 className="text-lg font-bold mb-4">Actividad Reciente</h2>
-                        <div className="text-gray-500 text-sm text-center py-8">
-                            Aquí aparecerá el log de actividad (Coming Soon)
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 className="text-lg font-bold mb-4">Actividad Reciente</h2>
+                <div className="text-gray-500 text-sm text-center py-8">
+                    {orders.length > 0 ? (
+                        <div className="text-left space-y-2">
+                            {orders.slice(0, 5).map((order, i) => (
+                                <div key={i} className="flex justify-between items-center py-2 border-b border-gray-100">
+                                    <span className="text-gray-900 font-medium">{order.ref}</span>
+                                    <span className="text-gray-500">{order.customerName}</span>
+                                    <span className="text-sm text-blue-600">${(order.amount / 1000).toFixed(1)}k</span>
+                                </div>
+                            ))}
                         </div>
-                    </div>
+                    ) : (
+                        'No hay actividad reciente'
+                    )}
                 </div>
+            </div>
         </AdminLayout>
     );
 };
@@ -134,7 +137,7 @@ const StatsCard = ({ icon: Icon, label, value, trend, color = "text-gray-900" }:
                 <Icon className="w-6 h-6" />
             </div>
             {trend && (
-                <span className={`text-xs font-medium px-2 py-1 rounded-full ${trend.startsWith('+') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                <span className="text-xs font-medium text-gray-500">
                     {trend}
                 </span>
             )}
