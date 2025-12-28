@@ -18,7 +18,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ plan }) => {
     const [step, setStep] = useState(1); // 1: Datos, 2: Pago
 
     // CRM Store Actions
-    const { addClient, addOrderToClient, getClientByPhone } = useClientStore();
+    const { addClient, addOrderToClient } = useClientStore();
 
     // Form State
     const [formData, setFormData] = useState({
@@ -73,7 +73,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ plan }) => {
     const handleManualConfirmation = async () => {
         setLoading(true);
         try {
-            // CRM PERSISTENCE
+            // 1. CRM PERSISTENCE (ClientStore)
             const fullName = `${formData.firstName} ${formData.lastName}`;
             const cleanPhone = formData.phone.replace(/\D/g, '');
 
@@ -85,22 +85,32 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ plan }) => {
                 createdAt: new Date().toISOString()
             });
 
-            // MOCK ORDER CREATION (Just for ID generation)
-            const orderRef = `ORD-${Date.now().toString().slice(-6)}`;
+            // 2. CREATE ORDER IN MOCK SYSTEM (for PaymentResult page)
+            const mockOrder = await createMockOrder(
+                plan,
+                fullName,
+                cleanPhone,
+                formData.email
+            );
 
+            // 3. ADD ORDER TO CLIENT HISTORY
             addOrderToClient(cleanPhone, {
-                id: orderRef,
+                id: mockOrder.ref,
                 plan: plan.name,
-                date: new Date().toISOString(),
+                date: mockOrder.createdAt,
                 status: 'pending'
             });
 
-            const message = `Hola, envío comprobante de pago con llave/QR para el *${plan.name}* (Ref: ${orderRef}).`;
+            // 4. SEND WHATSAPP WITH PAYMENT INSTRUCTIONS
+            const message = `Hola, envío comprobante de pago con llave/QR para el *${plan.name}* (Ref: ${mockOrder.ref}).`;
             openWhatsApp('573332260032', message);
-            navigate(`/pago/resultado?ref=${orderRef}`);
+
+            // 5. REDIRECT TO RESULT PAGE
+            navigate(`/pago/resultado?ref=${mockOrder.ref}`);
 
         } catch (error) {
-            console.error(error);
+            console.error('Error al procesar pago:', error);
+            alert('Hubo un error al procesar tu pedido. Por favor intenta de nuevo.');
         } finally {
             setLoading(false);
         }
