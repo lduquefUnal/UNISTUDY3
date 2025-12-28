@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { SEOHead } from '../components/seo/SEOHead';
 import { Layout } from '../components/layout/Layout';
 import { getBlogPosts, type BlogPost } from '../services/mockBlog';

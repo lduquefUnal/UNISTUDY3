@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import { useClientStore } from '../../store/clients';
 import type { Client } from '../../store/clients';
-import { Search, MessageCircle, MoreVertical, Phone, Mail, Calendar } from 'lucide-react';
+import { Search, MessageCircle, Phone, Mail, Calendar } from 'lucide-react';
 import { openWhatsApp } from '../../utils/whatsapp';
 
 export const Clients: React.FC = () => {

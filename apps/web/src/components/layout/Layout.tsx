@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Users, LayoutDashboard, LogOut, CheckCircle, Smartphone, MessageCircle } from 'lucide-react';
-import { authService } from '../../services/auth';
+import { MessageCircle } from 'lucide-react';
 import { openWhatsApp } from '../../utils/whatsapp';
 // import { BookOpen } from 'lucide-react'; // Removed as we use text gradient now
 

@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Layout } from '../components/layout/Layout';
 import { getMockOrder, type Order } from '../services/mockOrders';
 import { CheckCircle, Clock, AlertTriangle, ArrowRight } from 'lucide-react';
-import { cn } from '../lib/utils';
 
 const PaymentResult: React.FC = () => {
     const [searchParams] = useSearchParams();

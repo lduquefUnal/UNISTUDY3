@@ -1,12 +1,10 @@
-import { useState } from 'react';
 import { SEOHead } from '../components/seo/SEOHead';
 import { Layout } from '../components/layout/Layout';
 import { MOCK_FAQS } from '../services/mockData';
 import { FAQItem } from '../components/ui/FAQItem';
+import { openWhatsApp } from '../utils/whatsapp';
 
 const FAQ = () => {
-    const [openId, setOpenId] = useState<string | null>(null);
-
     return (
         <Layout>
             <SEOHead />

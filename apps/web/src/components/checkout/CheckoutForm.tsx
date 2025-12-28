@@ -9,7 +9,7 @@ import { useClientStore } from '../../store/clients';
 
 interface CheckoutFormProps {
     plan: Plan;
-    billingPeriod: 'mensual' | 'anual';
+    billingPeriod?: 'mensual' | 'anual';
 }
 
 export const CheckoutForm: React.FC<CheckoutFormProps> = ({ plan }) => {

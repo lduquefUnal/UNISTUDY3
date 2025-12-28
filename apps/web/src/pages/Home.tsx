@@ -1,7 +1,5 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ShieldCheck, Zap, Globe, Star } from 'lucide-react';
-import { openWhatsApp } from '../utils/whatsapp';
+import { ArrowRight, ShieldCheck, Zap, Globe } from 'lucide-react';
 import { Reviews } from '../components/home/Reviews';
 import { Layout } from '../components/layout/Layout';
 

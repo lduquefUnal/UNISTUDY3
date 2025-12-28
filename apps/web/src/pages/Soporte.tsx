@@ -1,6 +1,5 @@
-import React from 'react';
 import { Layout } from '../components/layout/Layout';
-import { MessageCircle, Mail, MapPin, Clock, Send } from 'lucide-react';
+import { MessageCircle, Mail, Clock } from 'lucide-react';
 
 const Soporte: React.FC = () => {
     return (

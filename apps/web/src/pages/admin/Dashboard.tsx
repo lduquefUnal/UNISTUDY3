@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
-import { TrendingUp, Users, ShoppingBag, DollarSign } from 'lucide-react';
+import { Users, ShoppingBag, DollarSign } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useClientStore } from '../../store/clients';
 

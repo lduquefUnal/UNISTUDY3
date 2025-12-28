@@ -2,8 +2,10 @@
 import fs from 'fs';
 import path from 'path';
 
-const DOMAIN = 'https://unistudy.co';
+const DOMAIN = (process.env.SITE_URL || 'https://main.d380v8pmkrdsgo.amplifyapp.com').replace(/\/$/, '');
 const PUBLIC_DIR = path.resolve('public');
+const DIST_DIR = path.resolve('dist');
+const OUTPUT_DIR = fs.existsSync(DIST_DIR) ? DIST_DIR : PUBLIC_DIR;
 
 const STATIC_ROUTES = [
     '/',
@@ -31,7 +33,7 @@ const generateSitemap = () => {
         xml += `    <loc>${DOMAIN}${route}</loc>\n`;
         xml += `    <lastmod>${today}</lastmod>\n`;
         xml += '    <changefreq>weekly</changefreq>\n';
-        xml += '    <priority>${route === ' / ' ? '1.0' : '0.8'}</priority>\n';
+        xml += `    <priority>${route === '/' ? '1.0' : '0.8'}</priority>\n`;
         xml += '  </url>\n';
     });
 
@@ -47,17 +49,17 @@ const generateSitemap = () => {
 
     xml += '</urlset>';
 
-    if (!fs.existsSync(PUBLIC_DIR)) {
-        fs.mkdirSync(PUBLIC_DIR, { recursive: true });
+    if (!fs.existsSync(OUTPUT_DIR)) {
+        fs.mkdirSync(OUTPUT_DIR, { recursive: true });
     }
 
-    fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap.xml'), xml);
-    console.log('✅ sitemap.xml generated in public/');
+    fs.writeFileSync(path.join(OUTPUT_DIR, 'sitemap.xml'), xml);
+    console.log(`✅ sitemap.xml generated in ${OUTPUT_DIR}/`);
 
     // Robots.txt
     const robots = `User-agent: *\nAllow: /\nSitemap: ${DOMAIN}/sitemap.xml`;
-    fs.writeFileSync(path.join(PUBLIC_DIR, 'robots.txt'), robots);
-    console.log('✅ robots.txt generated in public/');
+    fs.writeFileSync(path.join(OUTPUT_DIR, 'robots.txt'), robots);
+    console.log(`✅ robots.txt generated in ${OUTPUT_DIR}/`);
 };
 
 generateSitemap();
