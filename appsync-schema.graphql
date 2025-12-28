@@ -1,0 +1,121 @@
+type Client {
+  phone: ID!
+  name: String!
+  email: String
+  createdAt: AWSDateTime!
+  notes: String
+}
+
+type Order {
+  orderId: ID!
+  clientPhone: String!
+  planId: String!
+  status: OrderStatus!
+  amount: Float!
+  createdAt: AWSDateTime!
+  expiresAt: AWSDateTime
+  reference: String!
+}
+
+type Plan {
+  planId: ID!
+  name: String!
+  description: String!
+  monthlyPrice: Float!
+  annualPrice: Float!
+  features: [String]!
+  category: String!
+  isActive: Boolean!
+  priority: Int
+}
+
+enum OrderStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  REFUNDED
+}
+
+type Query {
+  listClients(limit: Int, nextToken: String): ClientConnection
+  getClient(phone: ID!): Client
+  listOrders(limit: Int, nextToken: String): OrderConnection
+  getOrder(orderId: ID!): Order
+  getOrdersByClient(clientPhone: String!): [Order]
+  listPlans: [Plan]
+  getPlan(planId: ID!): Plan
+}
+
+type Mutation {
+  createClient(input: CreateClientInput!): Client
+  updateClient(phone: ID!, input: UpdateClientInput!): Client
+  createOrder(input: CreateOrderInput!): Order
+  updateOrder(orderId: ID!, input: UpdateOrderInput!): Order
+  createPlan(input: CreatePlanInput!): Plan
+  updatePlan(planId: ID!, input: UpdatePlanInput!): Plan
+}
+
+input CreateClientInput {
+  phone: String!
+  name: String!
+  email: String
+  notes: String
+}
+
+input UpdateClientInput {
+  name: String
+  email: String
+  notes: String
+}
+
+input CreateOrderInput {
+  clientPhone: String!
+  planId: String!
+  amount: Float!
+  status: OrderStatus!
+  reference: String!
+  expiresAt: AWSDateTime
+}
+
+input UpdateOrderInput {
+  status: OrderStatus
+  expiresAt: AWSDateTime
+}
+
+input CreatePlanInput {
+  planId: String!
+  name: String!
+  description: String!
+  monthlyPrice: Float!
+  annualPrice: Float!
+  features: [String]!
+  category: String!
+  isActive: Boolean!
+  priority: Int
+}
+
+input UpdatePlanInput {
+  name: String
+  description: String
+  monthlyPrice: Float
+  annualPrice: Float
+  features: [String]
+  category: String
+  isActive: Boolean
+  priority: Int
+}
+
+type ClientConnection {
+  items: [Client]
+  nextToken: String
+}
+
+type OrderConnection {
+  items: [Order]
+  nextToken: String
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+}

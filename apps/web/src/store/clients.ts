@@ -33,8 +33,19 @@ export const useClientStore = create<ClientStore>()(
             clients: [],
 
             addClient: (newClient) => set((state) => {
-                const exists = state.clients.find(c => c.phone === newClient.phone);
-                if (exists) return state; // Don't duplicate
+                const existingIndex = state.clients.findIndex(c => c.phone === newClient.phone);
+                if (existingIndex !== -1) {
+                    // Update existing client (keep history)
+                    const updated = [...state.clients];
+                    updated[existingIndex] = {
+                        ...updated[existingIndex],
+                        name: newClient.name,
+                        email: newClient.email,
+                        notes: newClient.notes
+                    };
+                    return { clients: updated };
+                }
+                // Create new client
                 return {
                     clients: [...state.clients, { ...newClient, history: [] }]
                 };
